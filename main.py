@@ -12,6 +12,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:8080",  # <--- Add your local Docker port here!
         "http://localhost:3000",  # Default local React development server
         "http://localhost:5173",  # Default local Vite + React server
         "https://datenlens.de",  # Your production domain
