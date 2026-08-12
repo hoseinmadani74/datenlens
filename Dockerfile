@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
-# Install Java (OpenJDK 17) required by PySpark
-RUN apt-get update && apt-get install -y openjdk-17-jre-headless && rm -rf /var/lib/apt/lists/*
+# Install default Java runtime required by PySpark (Debian Trixie compatible)
+RUN apt-get update && apt-get install -y default-jre-headless && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
