@@ -91,29 +91,103 @@
             <h3 class="text-2xl font-bold mb-8">Skills & Toolstack</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Category 1: Languages & Backend -->
                 <div class="p-5 bg-slate-800 rounded-xl border border-slate-700/50">
                     <div class="text-teal-400 text-2xl mb-3"><i class="fa-solid fa-code"></i></div>
-                    <h4 class="font-bold text-lg mb-2">Programming Languages</h4>
-                    <p class="text-slate-400 text-sm">Python (Proficient), R (Proficient), SQL (Proficient), Neo4j, MATLAB, C/C++, HTML/JS</p>
+                    <h4 class="font-bold text-lg mb-2">Languages & APIs</h4>
+                    <p class="text-slate-400 text-sm mb-3">Python (Proficient), R (Proficient), SQL (PostgreSQL, MySQL), Cypher (Neo4j), JavaScript (ES6+), C/C++, HTML5/CSS3</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">Python</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">SQL</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">R</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">FastAPI</span>
+                    </div>
                 </div>
 
+                <!-- Category 2: Data Engineering, Cloud & DevOps -->
                 <div class="p-5 bg-slate-800 rounded-xl border border-slate-700/50">
-                    <div class="text-blue-400 text-2xl mb-3"><i class="fa-solid fa-brain"></i></div>
-                    <h4 class="font-bold text-lg mb-2">ML & Data Frameworks</h4>
-                    <p class="text-slate-400 text-sm">TensorFlow, Keras, Scikit-Learn, NumPy, Pandas, SymPy, Seurat (R)</p>
+                    <div class="text-blue-400 text-2xl mb-3"><i class="fa-solid fa-cloud"></i></div>
+                    <h4 class="font-bold text-lg mb-2">Data Engineering & Cloud</h4>
+                    <p class="text-slate-400 text-sm mb-3">Apache Spark (PySpark), REST APIs, In-Memory Caching (TTL), Docker Containers, AWS EC2, Nginx Reverse Proxy, SSL/TLS (Let's Encrypt), Linux (Ubuntu/WSL), Bash, Git/CI-CD</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">PySpark</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">Docker</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">AWS EC2</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">Nginx</span>
+                    </div>
                 </div>
 
+                <!-- Category 3: ML, Analytics & Visualization -->
                 <div class="p-5 bg-slate-800 rounded-xl border border-slate-700/50">
-                    <div class="text-indigo-400 text-2xl mb-3"><i class="fa-solid fa-gears"></i></div>
-                    <h4 class="font-bold text-lg mb-2">Tools & Data Pipelines</h4>
-                    <p class="text-slate-400 text-sm">Power BI, MS Excel, Linux/Ubuntu (WSL), Docker, Git/GitHub/GitLab, CI/CD, Bash Scripts</p>
+                    <div class="text-indigo-400 text-2xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
+                    <h4 class="font-bold text-lg mb-2">Analytics & Visualization</h4>
+                    <p class="text-slate-400 text-sm mb-3">TensorFlow, Keras, Scikit-Learn, Pandas, NumPy, Seurat, Power BI, Leaflet.js (GIS Mapping), Time-Series Window Analytics, MS Excel</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Scikit-Learn</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Leaflet GIS</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Power BI</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Seurat</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Featured Engineering Projects -->
+    <section id="projects" class="max-w-6xl mx-auto px-6 py-16">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-teal-400 mb-2">Featured Projects</h2>
+        <h3 class="text-2xl font-bold mb-8">Production Engineering & Analytics</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Project 1: DatenLens.de -->
+            <div class="p-6 bg-slate-800/60 rounded-xl border border-slate-700/60 hover:border-teal-500/50 transition flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-xl font-bold text-white">DatenLens.de - German Mobility & Energy Platform</h4>
+                        <span class="text-xs px-2.5 py-1 bg-teal-500/20 text-teal-300 rounded-full font-bold">LIVE PRODUCTION</span>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">
+                        Full-stack real-time analytics platform deployed on AWS EC2 with custom domain (<a href="https://datenlens.de" target="_blank" class="text-teal-400 underline">datenlens.de</a>). Integrates live German MTS-K fuel prices via Tankerkönig API with in-memory TTL caching, interactive Leaflet GIS map with GPS location detection, and PySpark time-series crude oil moving average pipeline.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">FastAPI</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">PySpark</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Docker</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-emerald-300 rounded border border-slate-700">AWS EC2</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-cyan-300 rounded border border-slate-700">Leaflet GIS</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-purple-300 rounded border border-slate-700">Nginx SSL</span>
+                    </div>
+                </div>
+                <a href="https://datenlens.de" target="_blank" class="text-sm font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1.5 mt-2">
+                    Open Live Platform <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </a>
+            </div>
+
+            <!-- Project 2: Automotive Graph Variant Management -->
+            <div class="p-6 bg-slate-800/60 rounded-xl border border-slate-700/60 hover:border-blue-500/50 transition flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-xl font-bold text-white">Automotive Graph Database & Variant Engine</h4>
+                        <span class="text-xs px-2.5 py-1 bg-blue-500/20 text-blue-300 rounded-full font-bold">ABIDAT GmbH</span>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">
+                        Designed graph data models in Neo4j and developed automated Python & SQL pipelines to evaluate complex mathematical/logical relationships in vehicle variant management for a leading German automotive manufacturer.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-blue-300 rounded border border-slate-700">Neo4j</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-300 rounded border border-slate-700">Python</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-yellow-300 rounded border border-slate-700">SQL</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-indigo-300 rounded border border-slate-700">Docker</span>
+                        <span class="text-xs px-2 py-0.5 bg-slate-900 text-slate-300 rounded border border-slate-700">Linux/WSL</span>
+                    </div>
+                </div>
+                <span class="text-sm text-slate-500 mt-2">Enterprise Automotive Solution</span>
+            </div>
+        </div>
+    </section>
+
     <!-- Work Experience -->
-    <section id="experience" class="max-w-6xl mx-auto px-6 py-20">
+    <section id="experience" class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-800">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-teal-400 mb-2">Career Journey</h2>
         <h3 class="text-2xl font-bold mb-10">Professional Experience</h3>
 
