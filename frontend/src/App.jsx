@@ -21,8 +21,83 @@ const POPULAR_CITIES = [
   { name: 'Stuttgart', lat: 48.7758, lng: 9.1829 },
 ]
 
+const DB_CITIES = [
+  'Aachen', 'Augsburg', 'Berlin', 'Bielefeld', 'Bochum', 'Bonn', 'Braunschweig', 'Bremen',
+  'Chemnitz', 'Cologne', 'Dortmund', 'Dresden', 'Duisburg', 'Düsseldorf', 'Erfurt', 'Essen',
+  'Frankfurt am Main', 'Freiburg im Breisgau', 'Gelsenkirchen', 'Halle (Saale)', 'Hamburg',
+  'Hanover', 'Karlsruhe', 'Kassel', 'Kiel', 'Krefeld', 'Leipzig', 'Lübeck', 'Magdeburg',
+  'Mainz', 'Mannheim', 'Mönchengladbach', 'Munich', 'Münster', 'Nuremberg', 'Oberhausen',
+  'Rostock', 'Stuttgart', 'Wiesbaden', 'Wuppertal',
+]
+
+const WEATHER_OPTIONS = [
+  { id: 'clear', label: 'Clear / Dry', icon: '☀️', desc: 'Optimal rail conditions' },
+  { id: 'rain', label: 'Moderate Rain', icon: '🌧️', desc: 'Wet rails (+20% risk)' },
+  { id: 'heavy_rain', label: 'Heavy Rain / Storm', icon: '⛈️', desc: 'Flooding risk (+45% risk)' },
+  { id: 'snow_ice', label: 'Snow & Catenary Ice', icon: '❄️', desc: 'Switch icing (+68% risk)' },
+  { id: 'high_wind', label: 'High Wind (>60 km/h)', icon: '💨', desc: 'Speed limits (+78% risk)' },
+  { id: 'extreme_heat', label: 'Extreme Heat (>32°C)', icon: '🌡️', desc: 'Rail expansion (+25% risk)' },
+]
+
+const ROUTE_PRESETS = [
+  { origin: 'Frankfurt am Main', destination: 'Cologne', label: 'Frankfurt ➔ Köln' },
+  { origin: 'Berlin', destination: 'Munich', label: 'Berlin ➔ München' },
+  { origin: 'Hamburg', destination: 'Cologne', label: 'Hamburg ➔ Köln' },
+  { origin: 'Stuttgart', destination: 'Frankfurt am Main', label: 'Stuttgart ➔ Frankfurt' },
+  { origin: 'Dortmund', destination: 'Düsseldorf', label: 'Dortmund ➔ Düsseldorf' },
+  { origin: 'Nuremberg', destination: 'Munich', label: 'Nürnberg ➔ München' },
+]
+
+const ROUTE_MAP = {
+  fuel: {
+    path: '/fuel_price',
+    aliases: ['/', '/fuel', '/fuel_price', '/fuel-price', '/gas', '/fuel_price/'],
+    title: 'Datenlens | Live Fuel Prices & Gas Stations Germany',
+  },
+  trains: {
+    path: '/trains',
+    aliases: ['/trains', '/train-delays', '/db-delays', '/delays', '/trains/'],
+    title: 'Datenlens | Deutsche Bahn Delay Intelligence & Forecaster',
+  },
+  housing: {
+    path: '/housing',
+    aliases: ['/housing', '/rent', '/mietspiegel', '/housing-market', '/housing/'],
+    title: 'Datenlens | Germany Housing & Rental Index',
+  },
+  jobs: {
+    path: '/jobs',
+    aliases: ['/jobs', '/tech-jobs', '/jobs-radar', '/career', '/jobs/'],
+    title: 'Datenlens | Tech Jobs Radar Germany (English-Friendly)',
+  },
+  dashboard: {
+    path: '/energy',
+    aliases: ['/energy', '/markets', '/dashboard', '/oil', '/energy/'],
+    title: 'Datenlens | Energy Markets & Commodity Analytics',
+  },
+  portfolio: {
+    path: '/aboutus',
+    aliases: ['/aboutus', '/about-us', '/about', '/portfolio', '/resume', '/aboutus/'],
+    title: 'Datenlens | About Us & Engineering Portfolio',
+  },
+}
+
+function resolveTabFromPath(path) {
+  const normalized = (path || '/').toLowerCase().replace(/\/$/, '') || '/'
+  for (const [key, config] of Object.entries(ROUTE_MAP)) {
+    if (config.aliases.some((a) => (a === '/' ? normalized === '/' : a.replace(/\/$/, '') === normalized))) {
+      return key
+    }
+  }
+  return 'fuel'
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('fuel') // 'fuel' | 'trains' | 'housing' | 'jobs' | 'dashboard' | 'portfolio'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return resolveTabFromPath(window.location.pathname)
+    }
+    return 'fuel'
+  })
   const [stations, setStations] = useState([])
   const [analytics, setAnalytics] = useState(null)
   const [oilData, setOilData] = useState([])
@@ -59,6 +134,16 @@ export default function App() {
   const [dbStateFilter, setDbStateFilter] = useState('All')
   const [dbSort, setDbSort] = useState('punctuality') // 'punctuality' | 'worst' | 'delay' | 'trains'
 
+  // DB Route Delay Forecaster state
+  const [originCity, setOriginCity] = useState('Frankfurt am Main')
+  const [destCity, setDestCity] = useState('Cologne')
+  const [selectedWeather, setSelectedWeather] = useState('clear')
+  const [departureHour, setDepartureHour] = useState(17)
+  const [dayType, setDayType] = useState('weekday')
+  const [forecastData, setForecastData] = useState(null)
+  const [forecastLoading, setForecastLoading] = useState(false)
+  const [forecastError, setForecastError] = useState(null)
+
   // Housing Calculator state
   const [calcCityId, setCalcCityId] = useState('muc')
   const [calcSize, setCalcSize] = useState(65)
@@ -71,6 +156,18 @@ export default function App() {
   const markersGroupRef = useRef(null)
   const circleLayerRef = useRef(null)
   const centerMarkerRef = useRef(null)
+
+  // URL Navigation helper
+  const navigateTo = (tabKey, push = true) => {
+    setActiveTab(tabKey)
+    const config = ROUTE_MAP[tabKey]
+    if (config) {
+      document.title = config.title
+      if (push && typeof window !== 'undefined' && window.location.pathname !== config.path) {
+        window.history.pushState({ tab: tabKey }, '', config.path)
+      }
+    }
+  }
 
   // Fetch Live Gas Station Data
   const fetchGasStations = (targetLat = lat, targetLng = lng, targetRad = rad) => {
@@ -216,8 +313,60 @@ export default function App() {
       })
   }
 
-  // Initial Data Load
+  // Fetch DB Corridor Delay Forecast
+  const fetchDelayForecast = (
+    orig = originCity,
+    dest = destCity,
+    w = selectedWeather,
+    h = departureHour,
+    dt = dayType
+  ) => {
+    setForecastLoading(true)
+    setForecastError(null)
+    const url = `/api/train-delay-forecast?origin=${encodeURIComponent(orig)}&destination=${encodeURIComponent(dest)}&weather=${w}&hour=${h}&day_type=${dt}`
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}: Failed to fetch train forecast`)
+        return res.json()
+      })
+      .then((data) => {
+        if (data.success) {
+          setForecastData(data)
+        } else {
+          setForecastError(data.message || 'Forecast computation failed')
+        }
+        setForecastLoading(false)
+      })
+      .catch((err) => {
+        console.error('Forecast fetch error:', err)
+        setForecastError(err.message)
+        setForecastLoading(false)
+      })
+  }
+
+  // Live recalculate DB Delay Forecast on parameter change
   useEffect(() => {
+    fetchDelayForecast(originCity, destCity, selectedWeather, departureHour, dayType)
+  }, [originCity, destCity, selectedWeather, departureHour, dayType])
+
+  // Initial Data Load & PopState History Listener
+  useEffect(() => {
+    const initialTab = resolveTabFromPath(window.location.pathname)
+    setActiveTab(initialTab)
+    if (ROUTE_MAP[initialTab]) {
+      document.title = ROUTE_MAP[initialTab].title
+    }
+
+    const handlePopState = () => {
+      const currentTab = resolveTabFromPath(window.location.pathname)
+      setActiveTab(currentTab)
+      if (ROUTE_MAP[currentTab]) {
+        document.title = ROUTE_MAP[currentTab].title
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
     fetch('/api/oil-data')
       .then((res) => res.json())
       .then((data) => setOilData(data))
@@ -235,6 +384,8 @@ export default function App() {
 
     fetchGasStations(lat, lng, rad)
     fetchJobs('Data Analyst', 24)
+
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   // Initialize Leaflet Map
@@ -467,44 +618,44 @@ export default function App() {
     <div className="app-container">
       {/* Navigation Header */}
       <header className="navbar">
-        <div className="brand" onClick={() => setActiveTab('fuel')}>
+        <div className="brand" onClick={() => navigateTo('fuel')}>
           <span className="logo-accent">Daten</span>lens
           <span className="badge">GERMANY</span>
         </div>
         <nav className="nav-links">
           <button
             className={`nav-btn ${activeTab === 'fuel' ? 'active' : ''}`}
-            onClick={() => setActiveTab('fuel')}
+            onClick={() => navigateTo('fuel')}
           >
             ⛽ Fuel Map
           </button>
           <button
             className={`nav-btn ${activeTab === 'trains' ? 'active' : ''}`}
-            onClick={() => setActiveTab('trains')}
+            onClick={() => navigateTo('trains')}
           >
-            🚆 DB Delays
+            🚆 DB Delays & Forecaster
           </button>
           <button
             className={`nav-btn ${activeTab === 'housing' ? 'active' : ''}`}
-            onClick={() => setActiveTab('housing')}
+            onClick={() => navigateTo('housing')}
           >
             🏢 Housing & Rent
           </button>
           <button
             className={`nav-btn ${activeTab === 'jobs' ? 'active' : ''}`}
-            onClick={() => setActiveTab('jobs')}
+            onClick={() => navigateTo('jobs')}
           >
             🎯 Tech Jobs Radar
           </button>
           <button
             className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => navigateTo('dashboard')}
           >
             📈 Energy Markets
           </button>
           <button
             className={`nav-btn ${activeTab === 'portfolio' ? 'active' : ''}`}
-            onClick={() => setActiveTab('portfolio')}
+            onClick={() => navigateTo('portfolio')}
           >
             👤 Portfolio & Resume
           </button>
@@ -805,6 +956,272 @@ export default function App() {
               </div>
             )}
 
+            {/* ========================================================
+                DB CORRIDOR ROUTE DELAY PROBABILITY FORECASTER
+            ======================================================== */}
+            <div className="db-forecaster-card">
+              <div className="forecaster-header">
+                <div className="header-badge-row">
+                  <span className="api-badge">Predictive AI Model</span>
+                  <span className="ssl-badge">Weather & Corridors</span>
+                  <span className="cache-badge">40 Hub Network</span>
+                </div>
+                <h3>🚆 DB Corridor Route Delay Risk & Weather Forecaster</h3>
+                <p>
+                  Simulate and forecast departure delay probability, expected waiting time, and junction congestion using our multi-variable model combining weather stress, peak commuter windows, and network bottleneck scores.
+                </p>
+              </div>
+
+              {/* Quick Route Presets */}
+              <div className="route-presets-bar">
+                <span className="preset-label">Popular Routes:</span>
+                <div className="preset-chips">
+                  {ROUTE_PRESETS.map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      className={`preset-chip ${originCity === p.origin && destCity === p.destination ? 'active' : ''}`}
+                      onClick={() => {
+                        setOriginCity(p.origin)
+                        setDestCity(p.destination)
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="forecaster-main-grid">
+                {/* Left Column: Interactive Simulation Controls */}
+                <div className="forecaster-controls-panel">
+                  {/* Route Selectors */}
+                  <div className="fc-control-group">
+                    <label className="fc-label">Select Origin & Destination</label>
+                    <div className="route-select-row">
+                      <div className="select-col">
+                        <span className="col-sub">Departure (Origin)</span>
+                        <select
+                          className="fc-select"
+                          value={originCity}
+                          onChange={(e) => setOriginCity(e.target.value)}
+                        >
+                          {DB_CITIES.map((c) => (
+                            <option key={c} value={c} disabled={c === destCity}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="swap-route-btn"
+                        title="Swap Origin and Destination"
+                        onClick={() => {
+                          const temp = originCity
+                          setOriginCity(destCity)
+                          setDestCity(temp)
+                        }}
+                      >
+                        ⇄
+                      </button>
+
+                      <div className="select-col">
+                        <span className="col-sub">Arrival (Destination)</span>
+                        <select
+                          className="fc-select"
+                          value={destCity}
+                          onChange={(e) => setDestCity(e.target.value)}
+                        >
+                          {DB_CITIES.map((c) => (
+                            <option key={c} value={c} disabled={c === originCity}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Weather Conditions */}
+                  <div className="fc-control-group">
+                    <label className="fc-label">Weather & Atmospheric Conditions</label>
+                    <div className="weather-btn-grid">
+                      {WEATHER_OPTIONS.map((w) => (
+                        <button
+                          key={w.id}
+                          type="button"
+                          className={`weather-btn ${selectedWeather === w.id ? 'active' : ''}`}
+                          onClick={() => setSelectedWeather(w.id)}
+                        >
+                          <span className="w-icon">{w.icon}</span>
+                          <div className="w-text">
+                            <span className="w-title">{w.label}</span>
+                            <span className="w-desc">{w.desc}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Time of Day & Rush Hour Slider */}
+                  <div className="fc-control-group">
+                    <div className="fc-label-row">
+                      <label className="fc-label">Departure Time Window</label>
+                      <span className="time-display-badge">
+                        🕒 {String(departureHour).padStart(2, '0')}:00 Uhr
+                        {((departureHour >= 6 && departureHour <= 9) || (departureHour >= 15 && departureHour <= 19)) && (
+                          <span className="rush-indicator"> • Rush Hour Peak</span>
+                        )}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="23"
+                      value={departureHour}
+                      onChange={(e) => setDepartureHour(Number(e.target.value))}
+                      className="fc-slider"
+                    />
+                    <div className="slider-ticks">
+                      <span>00:00 (Night)</span>
+                      <span className="tick-peak">08:00 (Morning Peak)</span>
+                      <span>12:00</span>
+                      <span className="tick-peak">17:00 (Evening Peak)</span>
+                      <span>23:00</span>
+                    </div>
+                  </div>
+
+                  {/* Day Type Toggle */}
+                  <div className="fc-control-group">
+                    <label className="fc-label">Day of Travel</label>
+                    <div className="day-type-segmented">
+                      <button
+                        type="button"
+                        className={`day-btn ${dayType === 'weekday' ? 'active' : ''}`}
+                        onClick={() => setDayType('weekday')}
+                      >
+                        🏢 Regular Weekday (Mon - Fri)
+                      </button>
+                      <button
+                        type="button"
+                        className={`day-btn ${dayType === 'weekend' ? 'active' : ''}`}
+                        onClick={() => setDayType('weekend')}
+                      >
+                        🎉 Weekend / Holiday (+12% Load)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Live Risk Output */}
+                <div className="forecaster-results-panel">
+                  {forecastLoading ? (
+                    <div className="fc-loading-box">
+                      <div className="spinner"></div>
+                      <span>Computing corridor congestion & weather coefficients...</span>
+                    </div>
+                  ) : forecastData ? (
+                    <div className="fc-result-card">
+                      {/* Top Score Banner */}
+                      <div className="fc-score-header">
+                        <div>
+                          <span className="fc-route-headline">
+                            {forecastData.route.origin} ➔ {forecastData.route.destination}
+                          </span>
+                          <span className="fc-sub-window">
+                            {forecastData.route.time_window} • {forecastData.forecast.weather_label.en}
+                          </span>
+                        </div>
+                        <div className={`fc-grade-badge grade-${forecastData.forecast.risk_level.toLowerCase()}`}>
+                          <span className="grade-letter">{forecastData.forecast.rating}</span>
+                          <span className="grade-label">{forecastData.forecast.risk_level} Risk</span>
+                        </div>
+                      </div>
+
+                      {/* Probability & Delay Gauges */}
+                      <div className="fc-metrics-duo">
+                        <div className="fc-metric-card delay-risk">
+                          <span className="fc-met-label">Delay Probability</span>
+                          <span className={`fc-met-val val-${forecastData.forecast.risk_level.toLowerCase()}`}>
+                            {forecastData.forecast.delay_probability_pct}%
+                          </span>
+                          <div className="fc-meter-bar">
+                            <div
+                              className={`fc-meter-fill fill-${forecastData.forecast.risk_level.toLowerCase()}`}
+                              style={{ width: `${forecastData.forecast.delay_probability_pct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="fc-metric-card on-time">
+                          <span className="fc-met-label">Expected Average Delay</span>
+                          <span className="fc-met-val text-cyan">
+                            +{forecastData.forecast.expected_delay_minutes} min
+                          </span>
+                          <span className="fc-met-sub">
+                            On-Time Chance: <strong>{forecastData.forecast.on_time_probability_pct}%</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Risk Factors Decomposition */}
+                      <div className="fc-factor-decomposition">
+                        <span className="decomp-title">Contributing Risk Breakdown:</span>
+                        <div className="decomp-bars">
+                          <div className="decomp-row">
+                            <span className="d-label">Junction Congestion</span>
+                            <div className="d-bar-track">
+                              <div className="d-bar-fill fill-purple" style={{ width: `${forecastData.forecast.risk_factors.junction_congestion_pct}%` }} />
+                            </div>
+                            <span className="d-pct">{forecastData.forecast.risk_factors.junction_congestion_pct}%</span>
+                          </div>
+                          <div className="decomp-row">
+                            <span className="d-label">Weather & Track Conditions</span>
+                            <div className="d-bar-track">
+                              <div className="d-bar-fill fill-sky" style={{ width: `${forecastData.forecast.risk_factors.weather_impact_pct}%` }} />
+                            </div>
+                            <span className="d-pct">{forecastData.forecast.risk_factors.weather_impact_pct}%</span>
+                          </div>
+                          <div className="decomp-row">
+                            <span className="d-label">Time-of-Day Commute Load</span>
+                            <div className="d-bar-track">
+                              <div className="d-bar-fill fill-amber" style={{ width: `${forecastData.forecast.risk_factors.time_of_day_load_pct}%` }} />
+                            </div>
+                            <span className="d-pct">{forecastData.forecast.risk_factors.time_of_day_load_pct}%</span>
+                          </div>
+                          <div className="decomp-row">
+                            <span className="d-label">Baseline Network Density</span>
+                            <div className="d-bar-track">
+                              <div className="d-bar-fill fill-slate" style={{ width: `${forecastData.forecast.risk_factors.baseline_network_load_pct}%` }} />
+                            </div>
+                            <span className="d-pct">{forecastData.forecast.risk_factors.baseline_network_load_pct}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bilingual Advisory Card */}
+                      <div className="fc-advisory-box">
+                        <div className="adv-lang-col">
+                          <span className="adv-tag">🇬🇧 Travel Advisory:</span>
+                          <p className="adv-text">{forecastData.forecast.advice.en}</p>
+                        </div>
+                        <div className="adv-lang-col de">
+                          <span className="adv-tag">🇩🇪 Reisehinweis:</span>
+                          <p className="adv-text">{forecastData.forecast.advice.de}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="fc-error-box">
+                      <span>{forecastError || 'Select parameters to generate forecast'}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Top 10 Best vs Top 10 Worst Comparison Cards */}
             <div className="db-top10-split-grid">
               {/* TOP 10 BEST */}
@@ -898,6 +1315,17 @@ export default function App() {
                       value={dbSearch}
                       onChange={(e) => setDbSearch(e.target.value)}
                     />
+                  </div>
+
+                  <div className="control-filter">
+                    <span>State:</span>
+                    <select value={dbStateFilter} onChange={(e) => setDbStateFilter(e.target.value)}>
+                      {dbStatesList.map((st) => (
+                        <option key={st} value={st}>
+                          {st === 'All' ? 'All Federal States' : st}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="control-filter">
@@ -1095,12 +1523,23 @@ export default function App() {
                     {['All', 'South', 'West', 'North', 'East'].map((r) => (
                       <button
                         key={r}
+                        type="button"
                         className={`region-btn ${housingRegion === r ? 'active' : ''}`}
                         onClick={() => setHousingRegion(r)}
                       >
                         {r}
                       </button>
                     ))}
+                  </div>
+
+                  <div className="control-filter">
+                    <span>Sort:</span>
+                    <select value={housingSort} onChange={(e) => setHousingSort(e.target.value)}>
+                      <option value="kaltmiete">Highest Kaltmiete</option>
+                      <option value="warmmiete">Highest Warmmiete</option>
+                      <option value="growth">Highest YoY Growth</option>
+                      <option value="burden">Rent Burden %</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -1396,7 +1835,7 @@ export default function App() {
             {/* Crude Oil Pipeline & Market Data Grid */}
             <div className="dashboard-grid">
               {/* Widget 1: Tech Jobs Radar Summary */}
-              <div className="widget-card interactive" onClick={() => setActiveTab('jobs')}>
+              <div className="widget-card interactive" onClick={() => navigateTo('jobs')}>
                 <div className="widget-header">
                   <h3>Latest Tech Jobs in Germany</h3>
                   <span className="widget-tag live">LIVE RADAR</span>
@@ -1461,7 +1900,7 @@ export default function App() {
               </div>
 
               {/* Widget 4: Live Fuel Summary */}
-              <div className="widget-card interactive" onClick={() => setActiveTab('fuel')}>
+              <div className="widget-card interactive" onClick={() => navigateTo('fuel')}>
                 <div className="widget-header">
                   <h3>Regional Fuel Average ({locationName})</h3>
                   <span className="widget-tag live">LIVE MTS-K</span>
@@ -1486,7 +1925,7 @@ export default function App() {
               </div>
 
               {/* Widget 5: DB Train Mobility */}
-              <div className="widget-card interactive" onClick={() => setActiveTab('trains')}>
+              <div className="widget-card interactive" onClick={() => navigateTo('trains')}>
                 <div className="widget-header">
                   <h3>DB Rail Punctuality Tracker</h3>
                   <span className="widget-tag live">40 Bahnhöfe</span>

@@ -160,6 +160,7 @@ Aggregates tech and data opportunities in Germany while removing strict German f
 
 | Endpoint | Method | Query Parameters | Description | Sample Output Key |
 | :--- | :---: | :--- | :--- | :--- |
+| `/api/train-delay-forecast` | `GET` | `origin` (str), `destination` (str), `weather` (str), `hour` (int 0-23), `day_type` (weekday/weekend) | Predictive corridor delay risk, on-time probability, and advisory | `{"success": true, "forecast": {"delay_probability_pct": 82.5, "risk_level": "Severe", ...}}` |
 | `/api/jobs` | `GET` | `query` (str), `hours` (12, 24, 72) | English-friendly German tech job listings | `{"success": true, "count": 8, "jobs": [...]}` |
 | `/api/gas-stations` | `GET` | `lat` (float), `lng` (float), `rad` (float) | MTS-K real-time station prices & analytics | `{"success": true, "analytics": {...}, "stations": [...]}` |
 | `/api/geocode` | `GET` | `q` (str, min 2 chars) | German city/postal code geocoding | `{"success": true, "results": [...]}` |
@@ -169,7 +170,20 @@ Aggregates tech and data opportunities in Germany while removing strict German f
 
 ---
 
-## 5. Deployment Pipeline & Infrastructure
+## 5. Client-Side Routing & Deep Linking (HTML5 History)
+
+| Route Path | Aliases | Target View & Purpose |
+| :--- | :--- | :--- |
+| `/fuel_price` | `/`, `/fuel`, `/fuel-price`, `/gas` | MTS-K Live Fuel Map & Price Monitor |
+| `/trains` | `/db-delays`, `/train-delays`, `/delays` | DB Punctuality & AI Corridor Delay Forecaster |
+| `/housing` | `/rent`, `/mietspiegel`, `/housing-market` | German State & City Rental Index Calculator |
+| `/jobs` | `/tech-jobs`, `/jobs-radar`, `/career` | English-Friendly Tech Jobs Radar |
+| `/energy` | `/markets`, `/dashboard`, `/oil` | Energy Grid & PySpark Crude Oil Analytics |
+| `/aboutus` | `/portfolio`, `/about`, `/resume` | Engineering Portfolio & Lead Resume |
+
+---
+
+## 6. Deployment Pipeline & Infrastructure
 
 The project strictly follows an automated 3-step deployment pipeline:
 
@@ -181,6 +195,6 @@ The project strictly follows an automated 3-step deployment pipeline:
 
 ### Production Environment
 - **Host:** AWS EC2 Ubuntu Server (`16.171.169.68`)
-- **Web Server:** Nginx with Let's Encrypt TLS 1.3 certificates
+- **Web Server:** Nginx with Let's Encrypt TLS 1.3 certificates (`try_files $uri $uri/ /index.html;`)
 - **Containerization:** Docker multi-stage builds (`node:20-alpine`, `python:3.10-slim`, `nginx:alpine`)
 - **Process Management:** Uvicorn ASGI server with async worker pools
