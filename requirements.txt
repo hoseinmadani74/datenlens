@@ -27,3 +27,5 @@ fastapi
 uvicorn[standard]
 gunicorn
 httpx
+python-jobspy
+langdetect
