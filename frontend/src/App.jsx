@@ -81,6 +81,36 @@ const ROUTE_MAP = {
   },
 }
 
+const TRACK_PRESETS = [
+  {
+    id: 'track1',
+    label: 'Track 1: Data Analytics & Data Science',
+    icon: '📊',
+    badge: 'Analytics / AI / Biomedical',
+    sub: 'Data Analytics, Data Science, BI & Accessible Biomedical / Bioinformatics (no wet-lab / MD hurdles)',
+    defaultQuery: 'Junior Data Analyst',
+    pills: ['Junior Data Analyst', 'Junior Data Scientist', 'Biomedical Data Analyst', 'Bioinformatics Data Scientist', 'BI Analyst', 'Healthcare Data Analyst'],
+  },
+  {
+    id: 'track2',
+    label: 'Track 2: Data Engineering',
+    icon: '⚙️',
+    badge: 'Pipelines / PySpark / Big Data',
+    sub: 'ETL Pipelines, PySpark, Big Data, SQL, Databricks & Cloud Data Engineering',
+    defaultQuery: 'Junior Data Engineer',
+    pills: ['Junior Data Engineer', 'Data Engineer', 'Big Data Engineer', 'ETL Developer', 'PySpark Data Engineer', 'SQL Data Engineer'],
+  },
+  {
+    id: 'track3',
+    label: 'Track 3: Data Warehouse & DevOps / Systems',
+    icon: '🏗️',
+    badge: 'DWH / Cloud Data / MLOps',
+    sub: 'DWH Architecture, Snowflake, Database Infrastructure, Cloud Data Ops & MLOps / Systems',
+    defaultQuery: 'Data Warehouse Engineer',
+    pills: ['Data Warehouse Engineer', 'DWH Developer', 'Database Engineer', 'DevOps Engineer Data', 'MLOps Engineer', 'Cloud Data Engineer'],
+  },
+]
+
 function resolveTabFromPath(path) {
   const normalized = (path || '/').toLowerCase().replace(/\/$/, '') || '/'
   for (const [key, config] of Object.entries(ROUTE_MAP)) {
@@ -109,9 +139,14 @@ export default function App() {
 
   // Tech Jobs Radar state
   const [jobs, setJobs] = useState([])
+  const [directJobboards, setDirectJobboards] = useState([])
+  const [dax40Portals, setDax40Portals] = useState([])
   const [jobsLoading, setJobsLoading] = useState(false)
-  const [selectedHours, setSelectedHours] = useState(24)
-  const [searchKeyword, setSearchKeyword] = useState('Data Analyst')
+  const [selectedHours, setSelectedHours] = useState(72)
+  const [selectedTrack, setSelectedTrack] = useState('track1') // 'track1' | 'track2' | 'track3'
+  const [searchKeyword, setSearchKeyword] = useState('Junior Data Analyst')
+  const [workplacePref, setWorkplacePref] = useState('all') // 'all' | 'onsite_hybrid' | 'remote_germany'
+  const [dax40Only, setDax40Only] = useState(false)
   const [jobsError, setJobsError] = useState(null)
 
   // Search & Location state (Fuel)
@@ -290,10 +325,17 @@ export default function App() {
   }
 
   // Fetch Tech Jobs Radar Listings
-  const fetchJobs = (keyword = searchKeyword, hours = selectedHours) => {
+  const fetchJobs = (
+    keyword = searchKeyword,
+    hours = selectedHours,
+    track = selectedTrack,
+    workplace = workplacePref,
+    dax40 = dax40Only
+  ) => {
     setJobsLoading(true)
     setJobsError(null)
-    fetch(`/api/jobs?query=${encodeURIComponent(keyword)}&hours=${hours}`)
+    const url = `/api/jobs?query=${encodeURIComponent(keyword)}&hours=${hours}&track=${track}&workplace=${workplace}&dax40_only=${dax40}`
+    fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP Error ${res.status}: Failed to reach Jobs API`)
         return res.json()
@@ -301,6 +343,8 @@ export default function App() {
       .then((data) => {
         if (data.success) {
           setJobs(data.jobs || [])
+          setDirectJobboards(data.direct_jobboard_links || [])
+          setDax40Portals(data.dax40_portals || [])
         } else {
           setJobsError(data.message || 'Error fetching tech jobs')
         }
@@ -383,7 +427,7 @@ export default function App() {
       .catch((err) => console.error('DB fetch error:', err))
 
     fetchGasStations(lat, lng, rad)
-    fetchJobs('Data Analyst', 24)
+    fetchJobs('Junior Data Analyst', 72, 'track1', 'all', false)
 
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
@@ -1618,14 +1662,37 @@ export default function App() {
           <div className="jobs-container">
             <div className="section-header">
               <div className="header-badge-row">
-                <span className="api-badge">Arbeitnow & JobSpy Engine</span>
-                <span className="ssl-badge">🇩🇪 Germany Tech Market</span>
-                <span className="cache-badge">⚡ English-Friendly (No C1/C2 Gatekeeping)</span>
+                <span className="api-badge">Multi-Source Aggregator</span>
+                <span className="ssl-badge">🇩🇪 Germany Locations Only</span>
+                <span className="cache-badge">🎯 Junior &amp; Entry-Level Cap (&le; 3y)</span>
+                <span className="cache-badge">⚡ 100% English-Friendly</span>
               </div>
               <h2>Tech Jobs Radar Germany</h2>
               <p>
-                Live English-friendly tech opportunities across Germany filtered in real-time. Excludes strict German fluency hurdles (C1, C2, verhandlungssicher, fließend) for international data, engineering & software professionals.
+                Real-time job intelligence for junior, associate, and early-career tech professionals in Germany. Automatically excludes senior/lead roles (4+ years), filters out strict German fluency requirements (both German and English phrases), and provides direct deep links to major job boards and DAX 40 corporate portals.
               </p>
+            </div>
+
+            {/* 3 Career Track Selector Tabs */}
+            <div className="tracks-selector-grid">
+              {TRACK_PRESETS.map((t) => (
+                <div
+                  key={t.id}
+                  className={`track-card ${selectedTrack === t.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedTrack(t.id)
+                    setSearchKeyword(t.defaultQuery)
+                    fetchJobs(t.defaultQuery, selectedHours, t.id, workplacePref, dax40Only)
+                  }}
+                >
+                  <div className="track-header">
+                    <span className="track-icon">{t.icon}</span>
+                    <span className="track-badge">{t.badge}</span>
+                  </div>
+                  <h3 className="track-title">{t.label}</h3>
+                  <p className="track-sub">{t.sub}</p>
+                </div>
+              ))}
             </div>
 
             {/* Filter Controls Panel */}
@@ -1634,14 +1701,14 @@ export default function App() {
                 className="jobs-search-form"
                 onSubmit={(e) => {
                   e.preventDefault()
-                  fetchJobs(searchKeyword, selectedHours)
+                  fetchJobs(searchKeyword, selectedHours, selectedTrack, workplacePref, dax40Only)
                 }}
               >
                 <div className="jobs-search-input-wrap">
                   <span className="search-icon">🔍</span>
                   <input
                     type="text"
-                    placeholder="Search job title or keyword (e.g. Data Analyst, Data Engineer, Python, React)..."
+                    placeholder="Search job title, skill or company in Germany (e.g. Junior Data Analyst, PySpark, SQL)..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                   />
@@ -1656,22 +1723,58 @@ export default function App() {
                   )}
                 </div>
 
+                {/* Lookback Window */}
                 <div className="hours-toggle-group">
                   <span className="hours-label">Lookback:</span>
-                  {[12, 24, 72].map((h) => (
+                  {[12, 24, 72, 168].map((h) => (
                     <button
                       key={h}
                       type="button"
                       className={`hour-btn ${selectedHours === h ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedHours(h)
-                        fetchJobs(searchKeyword, h)
+                        fetchJobs(searchKeyword, h, selectedTrack, workplacePref, dax40Only)
                       }}
                     >
-                      {h}h
+                      {h === 168 ? '7d' : `${h}h`}
                     </button>
                   ))}
                 </div>
+
+                {/* Workplace Mode Filter */}
+                <div className="workplace-toggle-group">
+                  <span className="hours-label">Workplace:</span>
+                  {[
+                    { id: 'all', label: 'All Germany' },
+                    { id: 'onsite_hybrid', label: '🏢 On-Site / Hybrid (Preferred)' },
+                    { id: 'remote_germany', label: '🌐 Remote (DE)' },
+                  ].map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      className={`hour-btn ${workplacePref === w.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setWorkplacePref(w.id)
+                        fetchJobs(searchKeyword, selectedHours, selectedTrack, w.id, dax40Only)
+                      }}
+                    >
+                      {w.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* DAX 40 Only Toggle */}
+                <button
+                  type="button"
+                  className={`dax40-toggle-btn ${dax40Only ? 'active' : ''}`}
+                  onClick={() => {
+                    const next = !dax40Only
+                    setDax40Only(next)
+                    fetchJobs(searchKeyword, selectedHours, selectedTrack, workplacePref, next)
+                  }}
+                >
+                  ⭐ DAX 40 &amp; Blue Chips Only
+                </button>
 
                 <button
                   type="submit"
@@ -1684,48 +1787,122 @@ export default function App() {
                 <button
                   type="button"
                   className="jobs-action-btn refresh"
-                  onClick={() => fetchJobs(searchKeyword, selectedHours)}
+                  onClick={() => fetchJobs(searchKeyword, selectedHours, selectedTrack, workplacePref, dax40Only)}
                   disabled={jobsLoading}
                 >
                   🔄 Refresh
                 </button>
               </form>
 
-              {/* Quick Keyword Pills */}
+              {/* Fast-Track Role Pills for the Selected Track */}
               <div className="city-pills-row">
-                <span className="pills-label">Popular Searches:</span>
-                {['Data Analyst', 'Data Engineer', 'Python', 'Data Scientist', 'Machine Learning', 'Full Stack'].map((kw) => (
+                <span className="pills-label">Fast-Track Roles:</span>
+                {TRACK_PRESETS.find((t) => t.id === selectedTrack)?.pills.map((kw) => (
                   <button
                     key={kw}
+                    type="button"
                     className={`city-pill ${searchKeyword === kw ? 'active' : ''}`}
                     onClick={() => {
                       setSearchKeyword(kw)
-                      fetchJobs(kw, selectedHours)
+                      fetchJobs(kw, selectedHours, selectedTrack, workplacePref, dax40Only)
                     }}
                   >
                     {kw}
                   </button>
                 ))}
               </div>
+
+              {/* Strict Filters Assurance Banner */}
+              <div className="jobs-filter-banner">
+                <div className="banner-item">
+                  <span className="banner-icon">🎯</span>
+                  <span><strong>Experience Cap:</strong> Junior &amp; Entry-Level (&le; 3 Years Only) — Senior, Lead &amp; Head-of auto-excluded.</span>
+                </div>
+                <div className="banner-item">
+                  <span className="banner-icon">✓</span>
+                  <span><strong>Language Gatekeeper:</strong> 100% English-Friendly — Discards German C1/C2 or fluent German requirements.</span>
+                </div>
+                <div className="banner-item">
+                  <span className="banner-icon">🇩🇪</span>
+                  <span><strong>Location Integrity:</strong> Germany Only — Foreign listings (UK, Scotland, France, USA) filtered out.</span>
+                </div>
+              </div>
             </div>
 
-            {/* Jobs Stats Summary Bar */}
+            {/* Direct Deep-Links Launcher: All Major Job Boards & DAX 40 Portals */}
+            <div className="jobboards-launcher-section">
+              <div className="launcher-header">
+                <div>
+                  <h3>🚀 Direct Job Board &amp; DAX 40 Career Portals Launcher</h3>
+                  <p>
+                    One-click direct pre-filtered search links for "<strong>{searchKeyword}</strong>" across all major employment platforms and German corporate careers sites:
+                  </p>
+                </div>
+              </div>
+
+              {/* Major Job Boards Direct Grid */}
+              <div className="jobboards-grid">
+                {directJobboards.map((b) => (
+                  <a
+                    key={b.name}
+                    href={b.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="jobboard-card"
+                  >
+                    <div className="jb-top">
+                      <span className="jb-name">{b.name}</span>
+                      <span className="jb-badge">{b.badge}</span>
+                    </div>
+                    <p className="jb-desc">{b.description}</p>
+                    <span className="jb-link-text">Open Pre-Filtered Search ↗</span>
+                  </a>
+                ))}
+              </div>
+
+              {/* DAX 40 Enterprise Career Sites */}
+              <div className="dax40-portals-wrapper">
+                <div className="dax40-header">
+                  <span className="dax40-tag">⭐ DAX 40 Corporate Careers Shortcuts</span>
+                  <span className="dax40-sub">Direct official application sites:</span>
+                </div>
+                <div className="dax40-chips-grid">
+                  {dax40Portals.map((corp) => (
+                    <a
+                      key={corp.company}
+                      href={corp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="dax40-chip"
+                    >
+                      <span className="corp-name">{corp.company}</span>
+                      <span className="corp-focus">{corp.focus}</span>
+                      <span className="corp-arrow">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Ingested Live Job Listings Header & Stats */}
             <div className="analytics-summary-bar">
               <div className="summary-stat">
-                <span className="stat-label">Active Keyword</span>
-                <span className="stat-value text-cyan">{searchKeyword || 'All Tech'}</span>
+                <span className="stat-label">Active Query</span>
+                <span className="stat-value text-cyan">{searchKeyword}</span>
               </div>
               <div className="summary-stat">
-                <span className="stat-label">Timeframe</span>
-                <span className="stat-value text-emerald">Past {selectedHours} Hours</span>
+                <span className="stat-label">Track</span>
+                <span className="stat-value text-emerald">{TRACK_PRESETS.find((t) => t.id === selectedTrack)?.label.split(':')[0]}</span>
               </div>
               <div className="summary-stat">
-                <span className="stat-label">Matching Listings</span>
-                <span className="stat-value text-emerald">{jobs.length} Jobs Found</span>
+                <span className="stat-label">Live Ingested</span>
+                <span className="stat-value text-emerald">{jobs.length} Verified Junior Jobs</span>
               </div>
               <div className="summary-stat">
-                <span className="stat-label">Language Requirement</span>
-                <span className="stat-value text-cyan">English-Friendly</span>
+                <span className="stat-label">Workplace Mode</span>
+                <span className="stat-value text-cyan">
+                  {workplacePref === 'onsite_hybrid' ? 'On-Site / Hybrid (DE)' : workplacePref === 'remote_germany' ? 'Remote (DE)' : 'All Germany'}
+                </span>
               </div>
             </div>
 
@@ -1735,18 +1912,18 @@ export default function App() {
             {/* Loading Indicator */}
             {jobsLoading && (
               <div className="status-msg">
-                🔍 Searching live tech job boards and filtering English-friendly roles...
+                🔍 Aggregating live jobs from LinkedIn, Indeed, and Arbeitnow with junior and English verification...
               </div>
             )}
 
             {/* Empty State */}
             {!jobsLoading && jobs.length === 0 && !jobsError && (
               <div className="no-data">
-                No tech jobs found for "{searchKeyword}" within the last {selectedHours} hours. Try selecting 72h or searching with another keyword.
+                No strictly junior (&le;3y) English-friendly jobs found matching "{searchKeyword}" in the last {selectedHours === 168 ? '7 days' : `${selectedHours} hours`}. Try expanding lookback or searching with another keyword above.
               </div>
             )}
 
-            {/* Job Cards Grid */}
+            {/* Live Job Cards Grid */}
             <div className="jobs-cards-grid">
               {jobs.map((job, idx) => (
                 <div key={idx} className="job-card">
@@ -1758,15 +1935,25 @@ export default function App() {
                         <span className="job-location">📍 {job.location}</span>
                       </div>
                     </div>
-                    <span className={`job-source-badge ${job.source?.toLowerCase()}`}>
-                      {job.source || 'Aggregator'}
-                    </span>
+                    <div className="job-badges-col">
+                      <span className={`job-source-badge ${job.source?.toLowerCase()}`}>
+                        {job.source || 'Aggregator'}
+                      </span>
+                      {job.badge && (
+                        <span className="job-dax-badge">{job.badge}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="job-tags-row">
+                    <span className="job-tag work-mode">{job.workplace_type || 'Germany'}</span>
+                    <span className="job-tag exp-tier">{job.experience_tier || 'Junior (0-3y)'}</span>
+                    <span className="job-tag lang-verified">✓ 100% English Working Language</span>
                   </div>
 
                   <div className="job-card-bottom">
                     <div className="job-posted-time">
-                      <span>⏱️ {job.posted_at}</span>
-                      <span className="job-verified-tag">✓ English Friendly</span>
+                      <span>⏱️ Posted: {job.posted_at}</span>
                     </div>
                     <a
                       href={job.job_url}
@@ -1774,7 +1961,7 @@ export default function App() {
                       rel="noopener noreferrer"
                       className="job-apply-btn"
                     >
-                      Apply Now ↗
+                      Apply on {job.source || 'Portal'} ↗
                     </a>
                   </div>
                 </div>

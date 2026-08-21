@@ -2675,6 +2675,63 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
+.job-source-badge.linkedin {
+  background: rgba(14, 118, 168, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 118, 168, 0.4);
+}
+
+.job-badges-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.job-dax-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  white-space: nowrap;
+}
+
+.job-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.job-tag {
+  font-size: 0.74rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  color: #cbd5e1;
+}
+
+.job-tag.work-mode {
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #7dd3fc;
+}
+
+.job-tag.exp-tier {
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.job-tag.lang-verified {
+  border-color: rgba(147, 51, 234, 0.3);
+  color: #d8b4fe;
+  font-weight: 600;
+}
+
 .job-card-bottom {
   display: flex;
   justify-content: space-between;
@@ -2696,6 +2753,292 @@ body {
   color: var(--accent-color);
   font-weight: 600;
   font-size: 0.74rem;
+}
+
+/* ========================================================
+   TRACKS SELECTOR & DIRECT LAUNCHER STYLES
+======================================================== */
+.tracks-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.track-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.track-card:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.track-card.active {
+  border-color: var(--accent-color);
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.track-icon {
+  font-size: 1.5rem;
+}
+
+.track-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.track-card.active .track-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.track-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.track-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.workplace-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #0f172a;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.dax40-toggle-btn {
+  background: #0f172a;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #facc15;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.dax40-toggle-btn:hover {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: #facc15;
+}
+
+.dax40-toggle-btn.active {
+  background: #eab308;
+  color: #0f172a;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+}
+
+.jobs-filter-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px dashed rgba(56, 189, 248, 0.3);
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.banner-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.banner-icon {
+  font-size: 0.95rem;
+}
+
+/* Launcher Section */
+.jobboards-launcher-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.launcher-header h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.15rem;
+  color: #ffffff;
+}
+
+.launcher-header p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.jobboards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.9rem;
+}
+
+.jobboard-card {
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.jobboard-card:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.15);
+}
+
+.jb-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jb-name {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.jb-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.jb-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.jb-link-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+/* DAX 40 Enterprise Portals */
+.dax40-portals-wrapper {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dax40-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dax40-tag {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #facc15;
+}
+
+.dax40-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.dax40-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.6rem;
+}
+
+.dax40-chip {
+  background: #1e293b;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.dax40-chip:hover {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: #facc15;
+  transform: translateY(-2px);
+}
+
+.corp-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.corp-focus {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.corp-arrow {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.75rem;
+  font-size: 0.85rem;
+  color: #facc15;
 }
 
 .job-apply-btn {
